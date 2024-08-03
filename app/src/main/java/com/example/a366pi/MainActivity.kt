@@ -4,6 +4,7 @@ package com.example.a366pi
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,22 +47,33 @@ fun MyApp(userViewModel: UserViewModel) {
 
     // UI components
     var showAddUserPage by remember { mutableStateOf(false) }
+    var selectedUser by remember { mutableStateOf<User?>(null) }
     val errorMessage by userViewModel.errorMessage.observeAsState("")
     val snackbarHostState = remember { SnackbarHostState() }
 
     // Page Changing Logic
     if (showAddUserPage) {
+
+        // Add New User
         AddUserPage(
             userViewModel = userViewModel,
             onBack = { showAddUserPage = false }
         )
+    } else if (selectedUser != null) {
+
+        // Show User Details
+        UserDetailPage(
+            user = selectedUser!!,
+            onBack = { selectedUser = null }
+        )
     } else {
 
-        // Displaying HomePage when app opens at first
+        // Show homepage
         HomePage(
             users = users,
             errorMessage = errorMessage,
             onAddUserClicked = { showAddUserPage = true },
+            onUserClicked = { user -> selectedUser = user },
             snackbarHostState = snackbarHostState
         )
     }
@@ -74,6 +85,7 @@ fun HomePage(
     users: List<User>,
     errorMessage: String,
     onAddUserClicked: () -> Unit,
+    onUserClicked: (User) -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
     Scaffold(
@@ -161,7 +173,7 @@ fun HomePage(
                 Column(modifier = Modifier.padding(16.dp)) {
 
                     // Passing fetched users data for displaying
-                    UserList(users)
+                    UserList(users, onUserClicked)
                 }
             }
         }
@@ -170,7 +182,7 @@ fun HomePage(
 
 // Getting the list of users
 @Composable
-fun UserList(users: List<User>) {
+fun UserList(users: List<User>, onUserClicked: (User) -> Unit) {
 
     LazyColumn {
 
@@ -178,20 +190,21 @@ fun UserList(users: List<User>) {
         items(users) { user ->
 
             // Passing each user data for displaying in HomePage
-            UserItem(user)
+            UserItem(user, onClick = { onUserClicked(user) })
         }
     }
 }
 
 // Displaying the fetched users data
 @Composable
-fun UserItem(user: User) {
+fun UserItem(user: User, onClick: () -> Unit) {
 
     // UserItem - Card
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
         ),
@@ -231,15 +244,16 @@ fun UserItem(user: User) {
 @Composable
 fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
 
+    // User Details
     var employeeFirstname by remember { mutableStateOf("") }
     var employeeLastname by remember { mutableStateOf("") }
     var employeeID by remember { mutableStateOf("") }
     var employeeEmail by remember { mutableStateOf("") }
 
+    // Misc
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage by userViewModel.errorMessage.observeAsState("")
-
 
     // Input Regex
     val namePattern = Regex("^[a-zA-Z]*$")
@@ -247,7 +261,7 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
 
     Scaffold(
 
-        // Top-bar Section
+        // topbar Section
         topBar = {
             TopAppBar(
 
@@ -396,6 +410,69 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
             ) {
                 Text("Add User")
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserDetailPage(user: User, onBack: () -> Unit) {
+    Scaffold(
+
+        // topbar
+        topBar = {
+            TopAppBar(
+
+                // topbar - title
+                title = { Text("User Details") },
+
+                // topbar - styling
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = Color.White
+                ),
+
+                // topbar - navigation [back button]
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            // display employee name
+            Text(
+                text = "${user.first_name} ${user.last_name}",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // display employee email
+            Text(
+                text = "Email: ${user.email}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // display employee ID
+            Text(
+                text = "Employee ID: ${user.id}",
+                style = MaterialTheme.typography.bodyLarge
+            )
         }
     }
 }
