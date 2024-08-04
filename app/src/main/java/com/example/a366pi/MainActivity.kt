@@ -4,6 +4,7 @@ package com.example.a366pi
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -223,7 +224,7 @@ fun UserItem(user: User, onClick: () -> Unit) {
 
                 // UserItem - Card - Row - Column - Text1
                 Text(
-                    text = "${user.first_name} ${user.last_name}",
+                    text = "${user.firstName} ${user.lastName}",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -249,6 +250,12 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
     var employeeLastname by remember { mutableStateOf("") }
     var employeeID by remember { mutableStateOf("") }
     var employeeEmail by remember { mutableStateOf("") }
+    var employeeAddress by remember { mutableStateOf("") }
+    var employeePhoneNumber by remember { mutableStateOf("") }
+    var employeeCity by remember { mutableStateOf("") }
+    var employeeState by remember { mutableStateOf("") }
+    var employeeZip by remember { mutableStateOf("") }
+    var employeeCountry by remember { mutableStateOf("") }
 
     // Misc
     val scope = rememberCoroutineScope()
@@ -260,20 +267,16 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
     val integerRegex = Regex("^[0-9]+\$")
 
     Scaffold(
-
         // topbar Section
         topBar = {
             TopAppBar(
-
                 // topbar - title
                 title = { Text("Add User") },
-
                 // topbar - styling
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White
                 ),
-
                 // topbar - navigation [back button]
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -284,155 +287,264 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                         )
                     }
                 }
-
             )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp)
         ) {
-
-            // Asking for first name
-            OutlinedTextField(
-                value = employeeFirstname,
-                onValueChange = {
-
-                    // Checks for invalid characters
-                    scope.launch {
-                        if (namePattern.matches(it)) {
-                            employeeFirstname = it
-                        } else {
-                            snackbarHostState.showSnackbar("Name cannot contain special characters or numbers")
-                        }
-                    }
-                },
-                label = { Text("First Name") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Asking for last name
-            OutlinedTextField(
-                value = employeeLastname,
-                onValueChange = {
-
-                    // Checks for invalid characters
-                    scope.launch {
-                        if (namePattern.matches(it)) {
-                            employeeLastname = it
-                        } else {
-                            snackbarHostState.showSnackbar("Name cannot contain special characters or numbers")
-                        }
-                    }
-                },
-                label = { Text("Last Name") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Asking for Employee ID
-            OutlinedTextField(
-                value = employeeID,
-                onValueChange = {
-                    scope.launch {
-                        if (integerRegex.matches(it)) {
-                            employeeID = it
-                        } else {
-                            snackbarHostState.showSnackbar("Employee ID contains only numbers")
-                        }
-                    }
-                },
-                label = { Text("Employee ID") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Asking for Employee Email
-            OutlinedTextField(
-                value = employeeEmail,
-                onValueChange = {
-                    employeeEmail = it
-                },
-                label = { Text("Employee Email") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // AddUser Button
-            Button(
-                onClick = {
-                    scope.launch {
-                        if (employeeFirstname.isEmpty()) {
-                            snackbarHostState.showSnackbar("Employee First Name cannot be empty")
-                        } else if (employeeLastname.isEmpty()) {
-                            snackbarHostState.showSnackbar("Employee Last Name cannot be empty")
-                        } else if (employeeID.isEmpty()) {
-                            snackbarHostState.showSnackbar("Employee ID cannot be empty")
-                        } else if (employeeID.length != 6) {
-                            snackbarHostState.showSnackbar("Employee ID must be of 6 digits")
-                        } else if (employeeEmail.isEmpty()) {
-                            snackbarHostState.showSnackbar("Employee Email ID cannot be empty")
-                        } else {
-
-                            // Creating a new user
-                            val newUser = User(
-                                id = employeeID.toInt(),
-                                first_name = employeeFirstname,
-                                last_name = employeeLastname,
-                                email = employeeEmail
-                            )
-
-                            userViewModel.addUser(newUser)
-
-                            if (errorMessage.isNotEmpty()) {
-                                snackbarHostState.showSnackbar(errorMessage)
+            item {
+                // Asking for first name
+                OutlinedTextField(
+                    value = employeeFirstname,
+                    onValueChange = {
+                        // Checks for invalid characters
+                        scope.launch {
+                            if (namePattern.matches(it)) {
+                                employeeFirstname = it
                             } else {
-                                snackbarHostState.showSnackbar("User created: ${newUser.first_name} ${newUser.last_name}")
-                                onBack() // Navigate back after successful addition
+                                snackbarHostState.showSnackbar("Name cannot contain special characters or numbers")
                             }
                         }
-                    }
-                },
+                    },
+                    label = { Text("First Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // AddUser Button - Styling
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .wrapContentWidth(Alignment.CenterHorizontally)
-            ) {
-                Text("Add User")
+                // Asking for last name
+                OutlinedTextField(
+                    value = employeeLastname,
+                    onValueChange = {
+                        // Checks for invalid characters
+                        scope.launch {
+                            if (namePattern.matches(it)) {
+                                employeeLastname = it
+                            } else {
+                                snackbarHostState.showSnackbar("Name cannot contain special characters or numbers")
+                            }
+                        }
+                    },
+                    label = { Text("Last Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Employee ID
+                OutlinedTextField(
+                    value = employeeID,
+                    onValueChange = {
+                        scope.launch {
+                            if (integerRegex.matches(it)) {
+                                employeeID = it
+                            } else {
+                                snackbarHostState.showSnackbar("Employee ID contains only numbers")
+                            }
+                        }
+                    },
+                    label = { Text("Employee ID") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Employee Email
+                OutlinedTextField(
+                    value = employeeEmail,
+                    onValueChange = {
+                        employeeEmail = it
+                    },
+                    label = { Text("Employee Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Employee Address
+                OutlinedTextField(
+                    value = employeeAddress,
+                    onValueChange = {
+                        employeeAddress = it
+                    },
+                    label = { Text("Address") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Employee Phone Number
+                OutlinedTextField(
+                    value = employeePhoneNumber,
+                    onValueChange = {
+                        scope.launch {
+                            if (integerRegex.matches(it)) {
+                                employeePhoneNumber = it
+                            } else {
+                                snackbarHostState.showSnackbar("Phone number must be digits")
+                            }
+                        }
+                    },
+                    label = { Text("Phone Number") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Phone)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for City
+                OutlinedTextField(
+                    value = employeeCity,
+                    onValueChange = {
+                        scope.launch {
+                            if (namePattern.matches(it)) {
+                                employeeCity = it
+                            } else {
+                                snackbarHostState.showSnackbar("City Name cannot contain special characters or numbers")
+                            }
+                        }
+                    },
+                    label = { Text("City") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for State
+                OutlinedTextField(
+                    value = employeeState,
+                    onValueChange = {
+                        scope.launch {
+                            if (namePattern.matches(it)) {
+                                employeeState = it
+                            } else {
+                                snackbarHostState.showSnackbar("State Name cannot contain special characters or numbers")
+                            }
+                        }
+                    },
+                    label = { Text("State") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Zip Code
+                OutlinedTextField(
+                    value = employeeZip,
+                    onValueChange = {
+                        scope.launch {
+                            if (integerRegex.matches(it)) {
+                                employeeZip = it
+                            } else {
+                                snackbarHostState.showSnackbar("Please Enter a valid input")
+                            }
+                        }
+                    },
+                    label = { Text("Zip Code") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for Country
+                OutlinedTextField(
+                    value = employeeCountry,
+                    onValueChange = {
+                        scope.launch {
+                            if (namePattern.matches(it)) {
+                                employeeCountry = it
+                            } else {
+                                snackbarHostState.showSnackbar("Country Name cannot contain special characters or numbers")
+                            }
+                        }
+                    },
+                    label = { Text("Country") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // AddUser Button
+                Button(
+                    onClick = {
+                        scope.launch {
+                            if (employeeFirstname.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee First Name cannot be empty")
+                            } else if (employeeLastname.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee Last Name cannot be empty")
+                            } else if (employeeID.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee ID cannot be empty")
+                            } else if (employeeID.length != 6) {
+                                snackbarHostState.showSnackbar("Employee ID must be of 6 digits")
+                            } else if (employeeEmail.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee Email ID cannot be empty")
+                            } else if (employeeAddress.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee Address cannot be empty")
+                            } else if (employeePhoneNumber.isEmpty() || employeePhoneNumber.length != 10) {
+                                snackbarHostState.showSnackbar("Phone number must be 10 digits")
+                            } else if (employeeCity.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee City cannot be empty")
+                            } else if (employeeState.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee State ID cannot be empty")
+                            } else if (employeeZip.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee Zip Code cannot be empty")
+                            } else if (employeeZip.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee Zip Code cannot be empty")
+                            } else {
+                                // Creating a new user
+                                val newUser = User(
+                                    id = employeeID.toInt(),
+                                    firstName = employeeFirstname,
+                                    lastName = employeeLastname,
+                                    email = employeeEmail,
+                                    address = employeeAddress,
+                                    phoneNumber = employeePhoneNumber,
+                                    city = employeeCity,
+                                    state = employeeState,
+                                    zipCode = employeeZip,
+                                    country = employeeCountry
+                                )
+
+                                userViewModel.addUser(newUser)
+
+                                if (errorMessage.isNotEmpty()) {
+                                    snackbarHostState.showSnackbar(errorMessage)
+                                } else {
+                                    snackbarHostState.showSnackbar("User created: ${newUser.firstName} ${newUser.lastName}")
+                                    onBack() // Navigate back after successful addition
+                                }
+                            }
+                        }
+                    },
+                    // AddUser Button - Styling
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                ) {
+                    Text("Add User")
+                }
             }
         }
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailPage(user: User, onBack: () -> Unit) {
     Scaffold(
-
-        // topbar
         topBar = {
             TopAppBar(
-
-                // topbar - title
                 title = { Text("User Details") },
-
-                // topbar - styling
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White
                 ),
-
-                // topbar - navigation [back button]
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -452,27 +564,64 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-            // display employee name
-            Text(
-                text = "${user.first_name} ${user.last_name}",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+            // Displaying user profile picture (placeholder)
+            Card(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_sad_emoji), // displaying dummy profile pic until functionality added
+                        contentDescription = "User Profile Picture",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
-            // display employee email
+            // Display user name
             Text(
-                text = "Email: ${user.email}",
-                style = MaterialTheme.typography.bodyLarge
+                text = "${user.firstName} ${user.lastName}",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // display employee ID
-            Text(
-                text = "Employee ID: ${user.id}",
-                style = MaterialTheme.typography.bodyLarge
-            )
+            // Displaying user details
+            DetailRow(label = "Email", value = user.email)
+            DetailRow(label = "Employee ID", value = user.id.toString())
+            DetailRow(label = "Address", value = user.address)
+            DetailRow(label = "Phone Number", value = user.phoneNumber)
+            DetailRow(label = "City", value = user.city)
+            DetailRow(label = "State", value = user.state)
+            DetailRow(label = "Zip Code", value = user.zipCode)
+            DetailRow(label = "Country", value = user.country)
         }
+    }
+}
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
