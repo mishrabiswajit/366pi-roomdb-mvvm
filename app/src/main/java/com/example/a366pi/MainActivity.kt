@@ -254,7 +254,7 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
     var employeePhoneNumber by remember { mutableStateOf("") }
     var employeeCity by remember { mutableStateOf("") }
     var employeeState by remember { mutableStateOf("") }
-    var employeeZip by remember { mutableStateOf("") }
+    var employeePincode by remember { mutableStateOf("") }
     var employeeCountry by remember { mutableStateOf("") }
 
     // Misc
@@ -434,11 +434,11 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
 
                 // Asking for Zip Code
                 OutlinedTextField(
-                    value = employeeZip,
+                    value = employeePincode,
                     onValueChange = {
                         scope.launch {
                             if (integerRegex.matches(it)) {
-                                employeeZip = it
+                                employeePincode = it
                             } else {
                                 snackbarHostState.showSnackbar("Please Enter a valid input")
                             }
@@ -473,27 +473,25 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                     onClick = {
                         scope.launch {
                             if (employeeFirstname.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee First Name cannot be empty")
+                                snackbarHostState.showSnackbar("First Name cannot be empty")
                             } else if (employeeLastname.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee Last Name cannot be empty")
-                            } else if (employeeID.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee ID cannot be empty")
-                            } else if (employeeID.length != 6) {
+                                snackbarHostState.showSnackbar("Last Name cannot be empty")
+                            } else if (employeeID.isEmpty() || employeeID.length != 6) {
                                 snackbarHostState.showSnackbar("Employee ID must be of 6 digits")
                             } else if (employeeEmail.isEmpty()) {
                                 snackbarHostState.showSnackbar("Employee Email ID cannot be empty")
                             } else if (employeeAddress.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee Address cannot be empty")
+                                snackbarHostState.showSnackbar("Address cannot be empty")
                             } else if (employeePhoneNumber.isEmpty() || employeePhoneNumber.length != 10) {
                                 snackbarHostState.showSnackbar("Phone number must be 10 digits")
                             } else if (employeeCity.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee City cannot be empty")
+                                snackbarHostState.showSnackbar("City name cannot be empty")
                             } else if (employeeState.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee State ID cannot be empty")
-                            } else if (employeeZip.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee Zip Code cannot be empty")
-                            } else if (employeeZip.isEmpty()) {
-                                snackbarHostState.showSnackbar("Employee Zip Code cannot be empty")
+                                snackbarHostState.showSnackbar("State name cannot be empty")
+                            } else if (employeePincode.isEmpty() || employeePincode.length != 6) {
+                                snackbarHostState.showSnackbar("Pincode must be of 6 digits")
+                            } else if (employeeCountry.isEmpty()) {
+                                snackbarHostState.showSnackbar("Country name cannot be empty")
                             } else {
                                 // Creating a new user
                                 val newUser = User(
@@ -505,7 +503,7 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                                     phoneNumber = employeePhoneNumber,
                                     city = employeeCity,
                                     state = employeeState,
-                                    zipCode = employeeZip,
+                                    pinCode = employeePincode,
                                     country = employeeCountry
                                 )
 
@@ -600,7 +598,7 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
             DetailRow(label = "Phone Number", value = user.phoneNumber)
             DetailRow(label = "City", value = user.city)
             DetailRow(label = "State", value = user.state)
-            DetailRow(label = "Zip Code", value = user.zipCode)
+            DetailRow(label = "Zip Code", value = user.pinCode)
             DetailRow(label = "Country", value = user.country)
         }
     }

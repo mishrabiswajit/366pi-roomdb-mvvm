@@ -14,6 +14,6 @@ data class User(
     var phoneNumber: String,
     var city: String,
     var state: String,
-    var zipCode: String,
+    var pinCode: String,
     var country: String
 )
