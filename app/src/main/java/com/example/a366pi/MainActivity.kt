@@ -4,7 +4,6 @@ package com.example.a366pi
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -28,6 +28,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 // Driver code
 class MainActivity : ComponentActivity() {
@@ -256,6 +259,16 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
     var employeeState by remember { mutableStateOf("") }
     var employeePincode by remember { mutableStateOf("") }
     var employeeCountry by remember { mutableStateOf("") }
+    val employeeDOB = remember { mutableStateOf("") }
+
+    // Initial state setup for the DatePickerDialog. Specifies to show the picker initially
+    val datePickerState = rememberDatePickerState(initialDisplayMode = DisplayMode.Picker)
+
+    // State to control the visibility of the DatePickerDialog
+    val openDialog = remember { mutableStateOf(false) }
+
+    // Define the main color for the calendar picker
+    val calendarPickerMainColor = Color(0xFF722276)
 
     // Misc
     val scope = rememberCoroutineScope()
@@ -335,6 +348,81 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                     keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+
+                // Asking for employee DOB
+                OutlinedTextField(
+                    value = if (employeeDOB.value.isEmpty()) "Select Date of Birth" else employeeDOB.value,
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            openDialog.value = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarToday,
+                                contentDescription = "Select Date",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    label = { Text("Date of Birth") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            openDialog.value = true
+                        }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (openDialog.value) {
+                    // DatePickerDialog component with custom colors and button behaviors
+                    DatePickerDialog(
+                        colors = DatePickerDefaults.colors(
+                            containerColor = Color(0xFFF5F0FF),
+                        ),
+                        onDismissRequest = {
+                            // Action when the dialog is dismissed without selecting a date
+                            openDialog.value = false
+                        },
+                        confirmButton = {
+                            // Confirm button with custom action and styling
+                            TextButton(
+                                onClick = {
+                                    // Action to set the selected date and close the dialog
+                                    openDialog.value = false
+                                    employeeDOB.value =
+                                        datePickerState.selectedDateMillis?.convertMillisToDate()
+                                            ?: ""
+                                }
+                            ) {
+                                Text("OK", color = calendarPickerMainColor)
+                            }
+                        },
+                        dismissButton = {
+                            // Dismiss button to close the dialog without selecting a date
+                            TextButton(
+                                onClick = {
+                                    openDialog.value = false
+                                }
+                            ) {
+                                Text("CANCEL", color = calendarPickerMainColor)
+                            }
+                        }
+                    ) {
+                        // The actual DatePicker component within the dialog
+                        DatePicker(
+                            state = datePickerState,
+                            colors = DatePickerDefaults.colors(
+                                selectedDayContainerColor = calendarPickerMainColor,
+                                selectedDayContentColor = Color.White,
+                                selectedYearContainerColor = calendarPickerMainColor,
+                                selectedYearContentColor = Color.White,
+                                todayContentColor = calendarPickerMainColor,
+                                todayDateBorderColor = calendarPickerMainColor
+                            )
+                        )
+                    }
+                }
 
                 // Asking for Employee ID
                 OutlinedTextField(
@@ -478,6 +566,8 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                                 snackbarHostState.showSnackbar("Last Name cannot be empty")
                             } else if (employeeID.isEmpty() || employeeID.length != 6) {
                                 snackbarHostState.showSnackbar("Employee ID must be of 6 digits")
+                            } else if (employeeDOB.value.isEmpty()) {
+                                snackbarHostState.showSnackbar("Employee DOB must be filled")
                             } else if (employeeEmail.isEmpty()) {
                                 snackbarHostState.showSnackbar("Employee Email ID cannot be empty")
                             } else if (employeeAddress.isEmpty()) {
@@ -504,7 +594,8 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
                                     city = employeeCity,
                                     state = employeeState,
                                     pinCode = employeePincode,
-                                    country = employeeCountry
+                                    country = employeeCountry,
+                                    dob = employeeDOB.value
                                 )
 
                                 userViewModel.addUser(newUser)
@@ -536,15 +627,25 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
 @Composable
 fun UserDetailPage(user: User, onBack: () -> Unit) {
     Scaffold(
+
+        // userdetail - topbar
         topBar = {
             TopAppBar(
+
+                // userdetail - topbar - title
                 title = { Text("User Details") },
+
+                // userdetail - topbar - styling
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White
                 ),
+
+                // userdetail - topbar - navigation
                 navigationIcon = {
                     IconButton(onClick = onBack) {
+
+                        // userdetail - topbar - navigation - icon
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
@@ -555,6 +656,8 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
             )
         }
     ) { paddingValues ->
+
+        // userdetail - column
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -562,22 +665,26 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Displaying user profile picture (placeholder)
+            // userdetail - column - card
             Card(
                 modifier = Modifier
                     .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(4.dp)
+                    .clip(CircleShape),
+                elevation = CardDefaults.cardElevation(8.dp)
             ) {
+
+                // userdetail - column - card - box
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
+
+                    // userdetail - column  - card - box - icon (Profile Pic)
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_sad_emoji), // displaying dummy profile pic until functionality added
+                        painter = painterResource(id = R.drawable.ic_happy_emoji), // displaying dummy profile pic until functionality added
                         contentDescription = "User Profile Picture",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(72.dp)
                     )
                 }
             }
@@ -592,6 +699,7 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             // Displaying user details
+            DetailRow(label = "Date of Birth", value = user.dob)
             DetailRow(label = "Email", value = user.email)
             DetailRow(label = "Employee ID", value = user.id.toString())
             DetailRow(label = "Address", value = user.address)
@@ -606,20 +714,53 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
 
 @Composable
 fun DetailRow(label: String, value: String) {
-    Column(
+
+    // detailrow - card
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+
+        // detailrow - card - row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+
+            // detailrow - card - text1 (Parameter)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // detailrow - card - text2 (Value)
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
+}
+
+
+fun Long.convertMillisToDate(): String {
+    // Create a calendar instance in the default time zone
+    val calendar = Calendar.getInstance().apply {
+        timeInMillis = this@convertMillisToDate
+
+        // Adjust for the time zone offset to get the correct local date
+        val zoneOffset = get(Calendar.ZONE_OFFSET)
+        val dstOffset = get(Calendar.DST_OFFSET)
+        add(Calendar.MILLISECOND, -(zoneOffset + dstOffset))
+    }
+    // Format the calendar time in the specified format
+    val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.US)
+    return sdf.format(calendar.time)
 }

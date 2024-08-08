@@ -15,5 +15,6 @@ data class User(
     var city: String,
     var state: String,
     var pinCode: String,
-    var country: String
+    var country: String,
+    val dob: String
 )
