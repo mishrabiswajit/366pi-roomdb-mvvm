@@ -41,7 +41,9 @@ import androidx.core.content.FileProvider
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.LineSeparator
 import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.properties.UnitValue
 import java.io.File
 
 // Driver code
@@ -810,17 +812,37 @@ fun generatePdfAndGetUri(user: User, context: Context): Uri {
     PdfWriter(pdfFile.absolutePath).use { writer ->
         PdfDocument(writer).use { pdfDoc ->
             Document(pdfDoc).use { document ->
-                document.add(Paragraph("User Details").setFontSize(20f).setBold())
+                // Add title with styling
+                document.add(Paragraph("User Details")
+                    .setFontSize(28f)
+                    .setBold()
+                    .setMarginBottom(10f))
+
+                // Add visual separator
+                document.add(createVisualSeparator())
+
+                // Add user information with sections
+                document.add(Paragraph("Personal Information")
+                    .setFontSize(18f)
+                    .setBold()
+                    .setMarginTop(20f)
+                    .setMarginBottom(10f))
+
                 document.add(Paragraph("Name: ${user.firstName} ${user.lastName}"))
                 document.add(Paragraph("Date of Birth: ${user.dob}"))
                 document.add(Paragraph("Email: ${user.email}"))
-                document.add(Paragraph("Employee ID: ${user.id}"))
-                document.add(Paragraph("Address: ${user.address}"))
+
+                // Add another visual separator
+                document.add(createVisualSeparator())
+
+                document.add(Paragraph("Contact Information")
+                    .setFontSize(18f)
+                    .setBold()
+                    .setMarginTop(20f)
+                    .setMarginBottom(10f))
+
                 document.add(Paragraph("Phone Number: ${user.phoneNumber}"))
-                document.add(Paragraph("City: ${user.city}"))
-                document.add(Paragraph("State: ${user.state}"))
-                document.add(Paragraph("Zip Code: ${user.pinCode}"))
-                document.add(Paragraph("Country: ${user.country}"))
+                document.add(Paragraph("Address: ${user.address}, ${user.city}, ${user.state}, ${user.pinCode}, ${user.country}"))
             }
         }
     }
@@ -833,11 +855,21 @@ fun generatePdfAndGetUri(user: User, context: Context): Uri {
     )
 }
 
+// Helper function to create a visual separator
+private fun createVisualSeparator(): Paragraph {
+    return Paragraph("__________________________") // You can customize this string
+        .setMarginTop(10f)
+        .setMarginBottom(10f)
+        .setFontSize(12f) // You can change the font size if needed
+        .setBold() // Optional: Make it bold
+}
+
 fun sharePdf(pdfUri: Uri, context: Context) {
     val shareIntent = Intent().apply {
         action = Intent.ACTION_SEND
         type = "application/pdf"
         putExtra(Intent.EXTRA_STREAM, pdfUri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // Grant temporary read permission
         setPackage("com.whatsapp") // Share via WhatsApp
     }
     context.startActivity(Intent.createChooser(shareIntent, "Share PDF"))
