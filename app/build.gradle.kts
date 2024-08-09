@@ -71,6 +71,8 @@ dependencies {
     // Extended Material Icon Pack
     implementation("androidx.compose.material:material-icons-extended:1.0.0")
 
+    implementation ("com.itextpdf:itext7-core:7.2.4")
+
     // Other dependencies
     implementation("androidx.core:core-ktx:1.6.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")

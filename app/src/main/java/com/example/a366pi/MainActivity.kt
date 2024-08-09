@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +32,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Environment
+import androidx.compose.material.icons.filled.Share
+import androidx.core.content.FileProvider
+import com.itextpdf.io.font.constants.StandardFonts
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.element.Text
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 // Driver code
 class MainActivity : ComponentActivity() {
@@ -626,6 +643,11 @@ fun AddUserPage(userViewModel: UserViewModel, onBack: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailPage(user: User, onBack: () -> Unit) {
+
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     Scaffold(
 
         // userdetail - topbar
@@ -654,7 +676,25 @@ fun UserDetailPage(user: User, onBack: () -> Unit) {
                     }
                 }
             )
-        }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            // Generate PDF and share it
+                            val pdfUri = generatePdfAndGetUri(user, context)
+                            sharePdf(pdfUri, context)
+                        } catch (e: Exception) {
+                            snackbarHostState.showSnackbar("Error exporting PDF: ${e.message}")
+                        }
+                    }
+                }
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = "Share")
+            }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
 
         // userdetail - column
@@ -763,4 +803,44 @@ fun Long.convertMillisToDate(): String {
     // Format the calendar time in the specified format
     val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.US)
     return sdf.format(calendar.time)
+}
+
+fun generatePdfAndGetUri(user: User, context: Context): Uri {
+    // Create PDF file
+    val pdfFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "${user.firstName}_${user.lastName}_${user.id}.pdf")
+
+    PdfWriter(pdfFile.absolutePath).use { writer ->
+        PdfDocument(writer).use { pdfDoc ->
+            Document(pdfDoc).use { document ->
+                document.add(Paragraph("User Details").setFontSize(20f).setBold())
+                document.add(Paragraph("Name: ${user.firstName} ${user.lastName}"))
+                document.add(Paragraph("Date of Birth: ${user.dob}"))
+                document.add(Paragraph("Email: ${user.email}"))
+                document.add(Paragraph("Employee ID: ${user.id}"))
+                document.add(Paragraph("Address: ${user.address}"))
+                document.add(Paragraph("Phone Number: ${user.phoneNumber}"))
+                document.add(Paragraph("City: ${user.city}"))
+                document.add(Paragraph("State: ${user.state}"))
+                document.add(Paragraph("Zip Code: ${user.pinCode}"))
+                document.add(Paragraph("Country: ${user.country}"))
+            }
+        }
+    }
+
+    // Get URI for the file
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.provider",
+        pdfFile
+    )
+}
+
+fun sharePdf(pdfUri: Uri, context: Context) {
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        type = "application/pdf"
+        putExtra(Intent.EXTRA_STREAM, pdfUri)
+        setPackage("com.whatsapp") // Share via WhatsApp
+    }
+    context.startActivity(Intent.createChooser(shareIntent, "Share PDF"))
 }
