@@ -32,22 +32,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import androidx.compose.material.icons.filled.Share
 import androidx.core.content.FileProvider
-import com.itextpdf.io.font.constants.StandardFonts
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.element.Text
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 
 // Driver code
 class MainActivity : ComponentActivity() {
@@ -807,7 +802,10 @@ fun Long.convertMillisToDate(): String {
 
 fun generatePdfAndGetUri(user: User, context: Context): Uri {
     // Create PDF file
-    val pdfFile = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "${user.firstName}_${user.lastName}_${user.id}.pdf")
+    val pdfFile = File(
+        context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+        "${user.firstName}_${user.lastName}_${user.id}.pdf"
+    )
 
     PdfWriter(pdfFile.absolutePath).use { writer ->
         PdfDocument(writer).use { pdfDoc ->
